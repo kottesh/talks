@@ -1,30 +1,36 @@
 {
-  description = "Slides Deck";
-
+  description = "deck deps";
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
   };
-
   outputs =
-    { self, nixpkgs }:
+    { self
+    , nixpkgs
+    ,
+    }:
     let
-      systems = [
+      supportedSystems = [
         "x86_64-linux"
         "aarch64-linux"
+        "x86_64-darwin"
         "aarch64-darwin"
       ];
-      eachSystem = nixpkgs.lib.genAttrs systems;
+      forEachSystem = nixpkgs.lib.genAttrs supportedSystems;
     in
     {
-      devShell = eachSystem(system:
+      devShells = forEachSystem (
+        system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
         in
-        pkgs.mkShell {
-          packages = with pkgs; [
-            pandoc
-            texliveMedium
-          ];
+        {
+          default = pkgs.mkShell {
+            buildInputs = with pkgs; [
+              pandoc
+              texliveMedium
+              zathura
+            ];
+          };
         }
       );
     };
